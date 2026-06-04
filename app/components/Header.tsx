@@ -25,12 +25,14 @@ export default function Header(isDesktop: any) {
                     } flex flex-col items-center justify-center bg-white border border-3 border-[#388778] px-1 shadow-sm mb-0 transition-all duration-200 `}
             >
 
-                {userName && (
+                {/*{userName && (
                     <div className="w-full text-left pl-[5%] text-[9px] text-zinc-400 leading-none mb-0.5 pl-0.5">
                         Logged in as: <span className="text-[12px] text-orange-600 font-bold">{userName}</span>
                     </div>
-                )}
-
+                )}*/}
+                <div className={`w-full text-left pl-[5%] text-[9px] text-zinc-400 leading-none mb-0.5 pl-0.5 ${currentPage === "login" || currentPage === "register" || !userName ? "invisible" : ""}`}>
+                    Logged in as: <span className="text-[12px] text-orange-600 font-bold">{userName}</span>
+                </div>
                 <div className="w-[95%] flex items-center justify-between gap-0 mt-1 mb-1 py-0">
                     <img
                         src="/sdesign_00053.png"

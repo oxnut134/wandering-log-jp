@@ -79,7 +79,7 @@ export default function ModalLocation({ modal, initialLocationId, setInitialLoca
                             id: savedData.id,
                             currentPos: m.data?.isNew
                                 ? { x: localPos.x, y: localPos.y }
-                                : { x: m.currentPos.y, y: m.currentPos.y },
+                                : { x: m.currentPos.x, y: m.currentPos.y },
                             data: {
                                 ...m.data,
                                 pos: m.pos,

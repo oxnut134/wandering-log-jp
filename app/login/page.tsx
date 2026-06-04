@@ -32,7 +32,7 @@ export default function LoginPage() {
                 password: data.password,
             });
 
-            if (result?.ok) {
+            if (result?.ok  && !result?.error) {
                 setCurrentPage("map");
                 router.push("/");
             } else {
