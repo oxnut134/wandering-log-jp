@@ -7,7 +7,6 @@ export default function ModalComments({ modal, comment, updateModalElements, act
     const map = useMap();
 
     const [gNewX, setGNewX] = useState<number | undefined>();
-    //const [localPos, setLocalPos] = useState<{ x: number, y: number } | null>(null);
     const [localPos, setLocalPos] = useState<{ x: number, y: number }>(
         initialModalPosComments ?? { x: modal.currentPos.x + 40, y: modal.currentPos.y + 40 }
     ); 
@@ -55,7 +54,6 @@ export default function ModalComments({ modal, comment, updateModalElements, act
 
         onFetchLogs();
 
-        //setLocalPos({ x: modal.currentPos.x + 40, y: modal.currentPos.y + 40 });
         setOpenedModalLocations((prev: any[]) => {
             return prev.map((m: any) =>
                 m.id === modal.id

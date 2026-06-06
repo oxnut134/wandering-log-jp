@@ -15,13 +15,6 @@ export default function ModalLocation({ modal, initialLocationId, setInitialLoca
 
     const modalRef = useRef<HTMLDivElement>(null);
 
-    // useEffect(() => {
-    //     console.log("openedModalLocations:", openedModalLocations)
-    // }, [openedModalLocations]);
-    // useEffect(() => {
-    //     console.log("localPos:", localPos)
-    // }, [openedModalLocations]);
-
     useEffect(() => {
         return () => {
             document.removeEventListener('mousemove', () => { });
@@ -361,9 +354,7 @@ export default function ModalLocation({ modal, initialLocationId, setInitialLoca
                         ? {
                             ...m,
 
-                            //currentPos: xRef.current ? { x: xRef.current, y: yRef.current! }
-                            //  : m.currentPos,
-                            currentPos: xRef.current !== undefined  // ← ? ではなく !== undefined
+                            currentPos: xRef.current !== undefined
                                 ? { x: xRef.current, y: yRef.current! }
                                 : m.currentPos,
                             data: {
