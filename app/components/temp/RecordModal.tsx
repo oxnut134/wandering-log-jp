@@ -239,7 +239,7 @@ export default function RecordModal({ tempOpenedModal, setTempOpenedModal, onClo
                             保存する
                         </button>
 
-       
+
                         <div style={{ display: 'flex', gap: '6px', marginBottom: '5px' }}>
                             <button
                                 onClick={handleGoogleSearch}

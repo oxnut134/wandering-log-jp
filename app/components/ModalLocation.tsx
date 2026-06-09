@@ -9,6 +9,8 @@ export default function ModalLocation({ modal, initialLocationId, setInitialLoca
     const [gNewX, setGNewX] = useState<number | undefined>();
     const [onSaving, setOnSaving] = useState(false);
     const [onSavingLocationLocal, setOnSavingLocationLocal] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [descriptionError, setDescriptionError] = useState<string>('');
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const [isConfirming, setIsConfirming] = useState(false);
     let isSavingWithLog: any = true
@@ -95,6 +97,29 @@ export default function ModalLocation({ modal, initialLocationId, setInitialLoca
 
         if (res.ok) return;
     }
+
+    const handleGenerateDescription = async () => {
+        setIsGenerating(true);
+        setDescriptionError('');
+        try {
+            const res = await fetch('/api/description', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: modal.data.name,
+                    lat: modal.data.latitude,
+                    lng: modal.data.longitude,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || '生成失敗');
+            setOpenedModalGoogle({ ...modal.data, comment: data.description });
+        } catch (e: any) {
+            setDescriptionError(e.message || 'エラーが発生しました');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     const handleDelete = async () => {
         const res = await fetch("/api/delete_locations_record", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: modal.data.id }) });
@@ -559,67 +584,76 @@ export default function ModalLocation({ modal, initialLocationId, setInitialLoca
                     placeholder="メモを残す"
                 />
 
-                <button
-                    onClick={handleSaveLocationWithLog}
-                    style={{
-                        width: '100%',
-                        height: '4vh',
-                        background: '#2563eb',
-                        color: 'white',
-                        marginBottom: '6px',
-                        borderRadius: '6px',
-                        padding: '10px',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                <div style={{ display: 'flex', marginBottom: '6px' }}>
+                    <button
+                        onClick={handleGenerateDescription}
+                        disabled={isGenerating}
+                        style={{
+                            width: '33%',
+                            height: '3vh',
+                            background: isGenerating ? '#9ca3af' : '#7c3aed',
+                            color: 'white',
+                            borderRadius: '6px',
+                            padding: '1px',
+                            fontSize: '10px',
+                            border: 'none',
+                            cursor: isGenerating ? 'not-allowed' : 'pointer',
+                        }}
+                    >
+                        {isGenerating ? '生成中...' : '説明生成'}
+                    </button>
 
-                    }}
-                >
-                    {onSaving ? (
-                        <>
-                            <div>
-                                <span>処理中...</span>
-                            </div>
-                        </>
-                    ) : (
-                        "訪問する"
+                    {!modal.data.isNew && (
+                        <button
+                            onClick={handleSaveLocation}
+                            style={{
+                                width: '66%',
+                                height: '3vh',
+                                background: '#2563eb',
+                                color: 'white',
+                                borderRadius: '6px',
+                                padding: '1px',
+                                fontSize: '10px',
+                                fontWeight: 'bold',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginLeft: 'auto',
+                            }}
+                        >
+                            {onSavingLocationLocal ? <span>処理中...</span> : "保存する"}
+                        </button>
                     )}
-                </button>
+                </div>
 
-                {!modal.data.isNew && (<button
-                    onClick={handleSaveLocation}
-                    style={{
-                        width: '100%',
-                        height: '4vh',
-                        background: '#2563eb',
-                        color: 'white',
-                        marginBottom: '6px',
-                        borderRadius: '6px',
-                        padding: '10px',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                {descriptionError && (
+                    <p style={{ color: '#ef4444', fontSize: '10px', marginBottom: '4px' }}>{descriptionError}</p>
+                )}
 
-                    }}
-                >
-                    {onSavingLocationLocal ? (
-                        <>
-                            <div>
-                                <span>処理中...</span>
-                            </div>
-                        </>
-                    ) : (
-                        "保存する"
-                    )}
-                </button>)}
+                <div style={{ marginBottom: '6px' }}>
+                    <button
+                        onClick={handleSaveLocationWithLog}
+                        style={{
+                            width: '100%',
+                            height: '4vh',
+                            background: '#2563eb',
+                            color: 'white',
+                            borderRadius: '6px',
+                            padding: '10px',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        {onSaving ? <span>処理中...</span> : "訪問する"}
+                    </button>
+                </div>
 
                 <div style={{ display: 'flex', gap: '6px', marginBottom: '5px' }}>
                     <button
