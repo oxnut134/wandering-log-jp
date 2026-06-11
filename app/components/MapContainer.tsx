@@ -6,7 +6,7 @@ import HeaderMobile from "./HeaderMobile";
 
 declare const google: any;
 
-function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setInitialLocationId, setModalPos, updateModalElements, openedModalLocations, setOpenedModalLocations, currentPosOfCamera, setCurrentPosOfCamera, currentPosOfHome, visitedLocations, setVisitedLocations, homeTrigger, onMarkerClick, currentZoom, setCurrentZoom, onCloseModalLocation }: any) {
+function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setInitialLocationId, setModalPos, updateModalElements, openedModalLocations, setOpenedModalLocations, currentPosOfCamera, setCurrentPosOfCamera, currentPosOfHome, visitedLocations, setVisitedLocations, homeTrigger, onMarkerClick, currentZoom, setCurrentZoom, onCloseModalLocation, searchKeyword }: any) {
     const map = useMap();
     const [isDesktop, setIsDesktop] = useState(true);
 
@@ -400,10 +400,13 @@ function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setIni
                     const isCurrent = openedModalLocations.find(
                         (loc: any) => loc.id === item.id && loc.data?.isCurrentMarker
                     );
+                    const keyword = (searchKeyword || "").trim().toLowerCase();
+                    const isMatched = keyword !== "" && (item.name || "").toLowerCase().includes(keyword);
                     return (
                         <AdvancedMarker
                             key={item.id}
                             clickable={true}
+                            className={isMatched ? "marker-blink" : ""}
                             position={{
                                 lat: Number(item.latitude),
                                 lng: Number(item.longitude)
