@@ -7,6 +7,7 @@ import ModalGoogle from "./components/ModalGoogle";
 import ModalLogs from "./components/ModalLogs";
 import ModalComments from "./components/ModalComments";
 import Header from "./components/Header";
+import ChatWidget from "./components/ChatWidget";
 
 //declare const google: any;
 
@@ -289,6 +290,8 @@ export default function WanderingLog() {
                 >
                     🎯
                 </button>
+
+                <ChatWidget />
 
                 {openedModalLocations.map((modal, index: number) => {
                     const isFocused = activeGroupId === modal.id
