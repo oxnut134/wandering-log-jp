@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Bot } from "lucide-react";
 
 type ChatMessage = {
     role: "user" | "assistant";
@@ -64,14 +65,13 @@ export default function ChatWidget() {
                     onClick={() => setIsOpen(true)}
                     style={{
                         position: "fixed",
-                        bottom: "16px",
-                        right: "16px",
+                        bottom: "440px",
+                        right: "11px",
                         width: "56px",
                         height: "56px",
                         borderRadius: "50%",
-                        backgroundColor: "#06C755",
+                        backgroundColor: "#ffffff",
                         border: "none",
-                        fontSize: "26px",
                         boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
                         cursor: "pointer",
                         zIndex: 1500,
@@ -81,7 +81,7 @@ export default function ChatWidget() {
                     }}
                     title="AIチャット"
                 >
-                    💬
+                    <Bot size={28} color="#000000" />
                 </button>
             )}
 
