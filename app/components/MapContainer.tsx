@@ -138,7 +138,7 @@ function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setIni
                     Number(m.log?.zIndexValue) || 1000,
                     ...(m.comments || []).map((c: any) => Number(c.zIndexValue) || 1000)
                 ]);
-                const nextZ = Math.max(1000, ...allValues);
+                const nextZ = Math.max(1000, ...allValues) + 1;
 
 
                 setOpenedModalLocations((prev: any[]) => {
@@ -152,7 +152,7 @@ function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setIni
                                     isRedFootMark: true,
                                 },
                                 locations: {
-                                    zIndexvalue: nextZ
+                                    zIndexValue: nextZ
                                 }
 
                             }
@@ -186,7 +186,7 @@ function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setIni
                     Number(m.log?.zIndexValue) || 1000,
                     ...(m.comments || []).map((c: any) => Number(c.zIndexValue) || 1000)
                 ]);
-                const nextZ = Math.max(1000, ...allValues);
+                const nextZ = Math.max(1000, ...allValues) + 1;
 
 
                 setOpenedModalLocations((prev: any[]) => {
@@ -200,7 +200,7 @@ function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setIni
                                     isRedFootMark: true
                                 },
                                 locations: {
-                                    zIndexvalue: nextZ
+                                    zIndexValue: nextZ
                                 }
                             }
                             : m
@@ -299,7 +299,7 @@ function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setIni
                 Number(m.log?.zIndexValue) || 1000,
                 ...(m.comments || []).map((c: any) => Number(c.zIndexValue) || 1000)
             ]);
-            const nextZ = Math.max(1000, ...allValues);
+            const nextZ = Math.max(1000, ...allValues) + 1;
 
 
             setOpenedModalLocations((prev: any[]) => {
@@ -314,7 +314,7 @@ function MapContainer({ initialLocationId, redMarkerPos, setRedMarkerPos, setIni
 
                             },
                             locations: {
-                                zIndexvalue: nextZ
+                                zIndexValue: nextZ
                             }
                         }
                         : m

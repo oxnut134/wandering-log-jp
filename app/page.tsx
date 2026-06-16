@@ -210,7 +210,7 @@ export default function WanderingLog() {
                                 type="text"
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
-                                placeholder="場所名で検索"
+                                placeholder="訪問場所名で検索"
                                 className="h-8 px-2 rounded-sm border border-3 border-[#388778] bg-white text-sm shadow-sm focus:outline-none"
                             />
                         </div>
