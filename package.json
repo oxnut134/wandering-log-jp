@@ -9,7 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.85",
+    "@ai-sdk/react": "^3.0.210",
     "@anthropic-ai/sdk": "^0.102.0",
+    "ai": "^6.0.208",
     "@neondatabase/serverless": "^1.0.2",
     "@types/google.maps": "^3.65.0",
     "@vis.gl/react-google-maps": "^1.7.1",
