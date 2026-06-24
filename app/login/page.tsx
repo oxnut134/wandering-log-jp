@@ -93,7 +93,7 @@ export default function LoginPage() {
                     </form>
 
                     <p className="mt-12 text-center text-gray-400 text-xs">
-                        © 2026 Your Shopping System
+                        © 2026 Your Wandering Log
                     </p>
                 </div>
             </div>
