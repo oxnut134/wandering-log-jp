@@ -13,6 +13,10 @@ import ChatWidget from "./components/ChatWidget";
 
 import { useAppContext, AppProvider } from "./context/AppContext";
 
+// 起動時の位置のモード。live: 現在地を取得して起動 / demo: 現在地を取得せず銀座で起動（未設定のときは demo）
+const LOCATION_MODE = process.env.NEXT_PUBLIC_LOCATION_MODE === "live" ? "live" : "demo";
+const GINZA_POS = { lat: 35.67133, lng: 139.76534 };
+
 
 export default function WanderingLog() {
 
@@ -98,13 +102,20 @@ export default function WanderingLog() {
     };
 
     useEffect(() => {
-        navigator.geolocation.getCurrentPosition((pos) => {
-            //const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; //起動後現在地からスタート
-            const coords = { lat: 35.67133, lng: 139.76534 };//起動後、銀座ライオン前からスタート
-            setCurrentPosOfCamera(coords);
-            setCurrentPosOfHome(coords);
-            setRedMarkerPos(coords);
-        });
+        if (LOCATION_MODE === "live") {
+            // TODO: 取得失敗時の対策（失敗時のコールバック・タイムアウト）がないため、取得できないと「現在地確認中...」のままになる
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; //起動後現在地からスタート
+                setCurrentPosOfCamera(coords);
+                setCurrentPosOfHome(coords);
+                setRedMarkerPos(coords);
+            });
+        } else {
+            //起動後、銀座ライオン前からスタート（現在地は取得しない）
+            setCurrentPosOfCamera(GINZA_POS);
+            setCurrentPosOfHome(GINZA_POS);
+            setRedMarkerPos(GINZA_POS);
+        }
         refreshHistory();
     }, []);
 
