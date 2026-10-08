@@ -36,7 +36,7 @@ Google マップ上に訪問した場所・訪問履歴・コメントを記録�
 - `AUTH_SECRET` : NextAuth の秘密鍵
 - `ANTHROPIC_API_KEY` : AI チャット・説明文生成
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` : Google Maps
-- `NEXT_PUBLIC_LOCATION_MODE` : 起動時の位置。`live` で現在地を取得、それ以外・未設定は demo（銀座で起動）。`live` で取得に失敗したときの対策は未実装（`app/page.tsx` に TODO）
+- `NEXT_PUBLIC_LOCATION_MODE` : 起動時の位置。`live` で現在地を取得、それ以外・未設定は demo（銀座で起動）。`live` でも、取得に失敗したとき、10 秒以内に取得できないとき（許可ダイアログの放置を含む）、位置情報が使えない環境では銀座で起動する。銀座で起動したあとに届いた現在地は無視するので、現在地へ移るには現在地ボタンを使う
 - `NEXT_PUBLIC_` の付く変数はビルド時に値が埋め込まれる。値を変えたら再ビルド（Vercel では再デプロイ）が必要
 
 ## 注意

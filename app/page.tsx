@@ -16,6 +16,7 @@ import { useAppContext, AppProvider } from "./context/AppContext";
 // 起動時の位置のモード。live: 現在地を取得して起動 / demo: 現在地を取得せず銀座で起動（未設定のときは demo）
 const LOCATION_MODE = process.env.NEXT_PUBLIC_LOCATION_MODE === "live" ? "live" : "demo";
 const GINZA_POS = { lat: 35.67133, lng: 139.76534 };
+const GEOLOCATION_TIMEOUT_MS = 10000;
 
 
 export default function WanderingLog() {
@@ -102,21 +103,44 @@ export default function WanderingLog() {
     };
 
     useEffect(() => {
-        if (LOCATION_MODE === "live") {
-            // TODO: 取得失敗時の対策（失敗時のコールバック・タイムアウト）がないため、取得できないと「現在地確認中...」のままになる
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; //起動後現在地からスタート
-                setCurrentPosOfCamera(coords);
-                setCurrentPosOfHome(coords);
-                setRedMarkerPos(coords);
-            });
+        let started = false;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
+        //先に起動した側を採用し、遅れて届いた現在地やエラーは無視する
+        const startAt = (coords: { lat: number; lng: number }) => {
+            if (started) return;
+            started = true;
+            setCurrentPosOfCamera(coords);
+            setCurrentPosOfHome(coords);
+            setRedMarkerPos(coords);
+        };
+
+        if (LOCATION_MODE === "live" && navigator.geolocation) {
+            //許可ダイアログを放置された場合などに備え、時間切れなら銀座からスタート
+            timer = setTimeout(() => startAt(GINZA_POS), GEOLOCATION_TIMEOUT_MS);
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    clearTimeout(timer);
+                    startAt({ lat: pos.coords.latitude, lng: pos.coords.longitude }); //起動後現在地からスタート
+                },
+                (err) => {
+                    //取得失敗のときは銀座からスタート
+                    clearTimeout(timer);
+                    console.log("位置情報の取得に失敗しました", err.message);
+                    startAt(GINZA_POS);
+                },
+                { timeout: GEOLOCATION_TIMEOUT_MS }
+            );
         } else {
-            //起動後、銀座ライオン前からスタート（現在地は取得しない）
-            setCurrentPosOfCamera(GINZA_POS);
-            setCurrentPosOfHome(GINZA_POS);
-            setRedMarkerPos(GINZA_POS);
+            //demo、または位置情報が使えない環境では銀座ライオン前からスタート
+            startAt(GINZA_POS);
         }
         refreshHistory();
+
+        return () => {
+            started = true;
+            clearTimeout(timer);
+        };
     }, []);
 
     const updateCurrentPos = (id: any, newPos: any) => {
