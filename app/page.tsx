@@ -42,7 +42,7 @@ export default function WanderingLog() {
     const [onSavingLocation, setOnSavingLocation] = useState(false);
     const [isDesktop, setIsDesktop] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
-
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     useEffect(() => {
         fetch('/api/auth/session')
@@ -81,7 +81,7 @@ export default function WanderingLog() {
     const renderMe = () => {
         setDummy(prev => !prev);
     };
- 
+
     const refreshHistory = async () => {
 
         const res = await fetch("/api/get_locations_and_places");
@@ -134,6 +134,7 @@ export default function WanderingLog() {
         } else {
             //demo、または位置情報が使えない環境では銀座ライオン前からスタート
             startAt(GINZA_POS);
+            handleCurrentLocation();
         }
         refreshHistory();
 
@@ -166,14 +167,33 @@ export default function WanderingLog() {
                     setRedMarkerPos(nowPos);
                     setHomeTrigger(prev => prev + 1);
                 },
-                () => { console.log("位置情報の取得に失敗しました"); },
+                (error:GeolocationPositionError) => {
+                    console.log("位置情報の取得に失敗しました");
+                    //位置情報が取得できない旨の、エッセージを出力
+                    //setToastMessage("位置情報がオフになっています。設定を確認してください");
+                    //setTimeout(() => setToastMessage(null), 5000);
+             
+                        if (error.code === error.PERMISSION_DENIED) {
+                            setToastMessage("位置情報がオフになっています。設定を確認してください");
+                            // オフ・ブロック
+                        } else if (error.code === error.TIMEOUT) {
+                            // 時間切れ
+                            setToastMessage("位置情報取得タイムアウトです");
+                        } else {
+                            // 位置を特定できない
+                            setToastMessage("位置情報が取得できません");
+                        }
+                    
+                    setTimeout(() => setToastMessage(null), 5000);
+
+                },
                 { enableHighAccuracy: true }
             );
         }
     };
 
     const handleHome = () => {
-         if (currentPosOfHome) {
+        if (currentPosOfHome) {
             setCurrentPosOfCamera({
                 lat: currentPosOfHome.lat,
                 lng: currentPosOfHome.lng
@@ -226,332 +246,342 @@ export default function WanderingLog() {
     })
 
     return (
-            <APIProvider
-                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}
-                libraries={['places', 'geometry']}
-                language={'jp'}
-                region={'jp'}
-            >
-                {isDesktop && (
-                    <div className="fixed top-2.5 left-50 right-4 bg-transparent z-50 pointer-events-none flex items-start gap-2">
-                        <div className="pointer-events-auto w-[40%]">
-                            <Header
-                                isDesktop={isDesktop}
-                                setIsDesktop={setIsDesktop}
-                            />
-                        </div>
-                        <div className="pointer-events-auto ml-6">
-                            <input
-                                type="text"
-                                value={searchKeyword}
-                                onChange={(e) => setSearchKeyword(e.target.value)}
-                                placeholder="訪問場所名で検索"
-                                className="h-8 px-2 rounded-sm border border-3 border-[#388778] bg-white text-sm shadow-sm focus:outline-none"
-                            />
-                        </div>
+
+        <APIProvider
+            apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}
+            libraries={['places', 'geometry']}
+            language={'jp'}
+            region={'jp'}
+        >
+            {toastMessage && (
+                <div style={{
+                    position: 'fixed', top: '80px', left: '50%', transform: 'translateX(-50%)',
+                    backgroundColor: 'rgba(0,0,0,0.8)', color: 'white',
+                    padding: '12px 20px', borderRadius: '8px', zIndex: 2000
+                }}>
+                    {toastMessage}
+                </div>
+            )}
+            {isDesktop && (
+                <div className="fixed top-2.5 left-50 right-4 bg-transparent z-50 pointer-events-none flex items-start gap-2">
+                    <div className="pointer-events-auto w-[40%]">
+                        <Header
+                            isDesktop={isDesktop}
+                            setIsDesktop={setIsDesktop}
+                        />
                     </div>
-                )}
-                <MapContainer
-                    isDesktop={isDesktop}
-                    setIsDesktop={setIsDesktop}
+                    <div className="pointer-events-auto ml-6">
+                        <input
+                            type="text"
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            placeholder="訪問場所名で検索"
+                            className="h-8 px-2 rounded-sm border border-3 border-[#388778] bg-white text-sm shadow-sm focus:outline-none"
+                        />
+                    </div>
+                </div>
+            )}
+            <MapContainer
+                isDesktop={isDesktop}
+                setIsDesktop={setIsDesktop}
 
-                    currentPosOfCamera={currentPosOfCamera}
-                    currentPosOfHome={currentPosOfHome}
-                    setCurrentPosOfCamera={setCurrentPosOfCamera}
-                    visitedLocations={visitedLocations}
-                    setVisitedLocations={setVisitedLocations}
-                    initialLocationId={initialLocationId}
-                    setInitialLocationId={setInitialLocationId}
-                    homeTrigger={homeTrigger}
-                    openedModalLocations={openedModalLocations}
-                    setOpenedModalLocations={setOpenedModalLocations}
-                    currentZoom={currentZoom}
-                    setCurrentZoom={setCurrentZoom}
-                    setModalPos={setModalPos}
-                    redMarkerPos={redMarkerPos}
-                    setRedMarkerPos={setRedMarkerPos}
-                    searchKeyword={searchKeyword}
-                />
-                <button
-                    onClick={handleCurrentLocation}
-                    style={{
-                        position: 'fixed', bottom: '380px', right: '7px',
-                        width: '45px', height: '45px', borderRadius: '50%',
-                        backgroundColor: 'white', border: 'none', fontSize: '24px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)', cursor: 'pointer', zIndex: 1000
-                    }}
-                >
-                    📍
-                </button>
-                <button
-                    onClick={handleHome}
-                    style={{
-                        position: 'fixed', bottom: '320px', right: '7px',
-                        width: '45px', height: '45px', borderRadius: '50%',
-                        backgroundColor: 'white', border: 'none', fontSize: '24px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)', cursor: 'pointer', zIndex: 1000
-                    }}
-                >
-                    🏠
-                </button>
+                currentPosOfCamera={currentPosOfCamera}
+                currentPosOfHome={currentPosOfHome}
+                setCurrentPosOfCamera={setCurrentPosOfCamera}
+                visitedLocations={visitedLocations}
+                setVisitedLocations={setVisitedLocations}
+                initialLocationId={initialLocationId}
+                setInitialLocationId={setInitialLocationId}
+                homeTrigger={homeTrigger}
+                openedModalLocations={openedModalLocations}
+                setOpenedModalLocations={setOpenedModalLocations}
+                currentZoom={currentZoom}
+                setCurrentZoom={setCurrentZoom}
+                setModalPos={setModalPos}
+                redMarkerPos={redMarkerPos}
+                setRedMarkerPos={setRedMarkerPos}
+                searchKeyword={searchKeyword}
+            />
+            <button
+                onClick={handleCurrentLocation}
+                style={{
+                    position: 'fixed', bottom: '380px', right: '7px',
+                    width: '45px', height: '45px', borderRadius: '50%',
+                    backgroundColor: 'white', border: 'none', fontSize: '24px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)', cursor: 'pointer', zIndex: 1000
+                }}
+            >
+                📍
+            </button>
+            <button
+                onClick={handleHome}
+                style={{
+                    position: 'fixed', bottom: '320px', right: '7px',
+                    width: '45px', height: '45px', borderRadius: '50%',
+                    backgroundColor: 'white', border: 'none', fontSize: '24px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)', cursor: 'pointer', zIndex: 1000
+                }}
+            >
+                🏠
+            </button>
 
-                <button
-                    onClick={() => {
-                        if (!currentPosOfCamera) return;
-                        setRedMarkerPos({
-                            lat: currentPosOfCamera.lat,
-                            lng: currentPosOfCamera.lng
-                        });
-                    }}
-                    style={{
-                        position: 'fixed',
-                        bottom: '260px', 
-                        right: '7px',
-                        width: '45px',
-                        height: '45px',
-                        borderRadius: '50%',
-                        backgroundColor: 'white', 
-                        color: 'white',
-                        border: 'none',
-                        fontSize: '20px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                        cursor: 'pointer',
-                        zIndex: 1000,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                    title="ピンを画面中央に呼び出す"
-                >
-                    🎯
-                </button>
+            <button
+                onClick={() => {
+                    if (!currentPosOfCamera) return;
+                    setRedMarkerPos({
+                        lat: currentPosOfCamera.lat,
+                        lng: currentPosOfCamera.lng
+                    });
+                }}
+                style={{
+                    position: 'fixed',
+                    bottom: '260px',
+                    right: '7px',
+                    width: '45px',
+                    height: '45px',
+                    borderRadius: '50%',
+                    backgroundColor: 'white',
+                    color: 'white',
+                    border: 'none',
+                    fontSize: '20px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    cursor: 'pointer',
+                    zIndex: 1000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+                title="ピンを画面中央に呼び出す"
+            >
+                🎯
+            </button>
 
-                <ChatWidget />
+            <ChatWidget />
 
-                {openedModalLocations.map((modal, index: number) => {
-                    const isFocused = activeGroupId === modal.id
-                    return (
-                        <React.Fragment key={`group-${modal.tempId || modal.id}`}>
-                            <ModalLocation
-                                key={`location-${modal.id}`}
-                                modal={modal}
-                                initialLocationId={initialLocationId}
-                                setInitialLocationId={setInitialLocationId}
-                                updateModalElements={updateModalElements}
-                                isFocused={isFocused}
-                                onFocus={() => {
-                                    setActiveGroupId(modal.id)
-                                }}
-                                clickedModalId={clickedModalId}
-                                setClickedModalId={setClickedModalId}
-                                initialModalPos={modal.currentPos}
-                                openedModalLocations={openedModalLocations}
-                                setOpenedModalLocations={setOpenedModalLocations}
-                                openedModalGoogle={modal.data}
-                                updateCurrentPos={(newPos: any) => updateCurrentPos(modal.id, newPos)}
-                                updatePos={(newPos: any) => updatedPos(modal.id, newPos)}
-                                isGoogleView={modal.data.isShowingGoogle}
-                                setIsGoogleView={setIsGoogleView}
-                                logs={modal.logs || []}
-                                onSaveSuccess={refreshHistory}
-                                isExisting={modal.id !== initialLocationId}
-                                onFetchLogs={() => onFetchLogs(modal.id)}
-                                moveDist={moveDist}
-                                setMoveDist={setMoveDist}
-                                setActiveGroupId={setActiveGroupId}
-                                onSavingLocation={onSavingLocation}
-                                setOnSavingLocation={setOnSavingLocation}
-                                setCurrentPosOfHome={setCurrentPosOfHome}
-                                onCloseModalLocation={() => {
-                                    setOpenedModalLocations(prev =>
-                                        prev.filter(record => record.id !== modal.id)
+            {openedModalLocations.map((modal, index: number) => {
+                const isFocused = activeGroupId === modal.id
+                return (
+                    <React.Fragment key={`group-${modal.tempId || modal.id}`}>
+                        <ModalLocation
+                            key={`location-${modal.id}`}
+                            modal={modal}
+                            initialLocationId={initialLocationId}
+                            setInitialLocationId={setInitialLocationId}
+                            updateModalElements={updateModalElements}
+                            isFocused={isFocused}
+                            onFocus={() => {
+                                setActiveGroupId(modal.id)
+                            }}
+                            clickedModalId={clickedModalId}
+                            setClickedModalId={setClickedModalId}
+                            initialModalPos={modal.currentPos}
+                            openedModalLocations={openedModalLocations}
+                            setOpenedModalLocations={setOpenedModalLocations}
+                            openedModalGoogle={modal.data}
+                            updateCurrentPos={(newPos: any) => updateCurrentPos(modal.id, newPos)}
+                            updatePos={(newPos: any) => updatedPos(modal.id, newPos)}
+                            isGoogleView={modal.data.isShowingGoogle}
+                            setIsGoogleView={setIsGoogleView}
+                            logs={modal.logs || []}
+                            onSaveSuccess={refreshHistory}
+                            isExisting={modal.id !== initialLocationId}
+                            onFetchLogs={() => onFetchLogs(modal.id)}
+                            moveDist={moveDist}
+                            setMoveDist={setMoveDist}
+                            setActiveGroupId={setActiveGroupId}
+                            onSavingLocation={onSavingLocation}
+                            setOnSavingLocation={setOnSavingLocation}
+                            setCurrentPosOfHome={setCurrentPosOfHome}
+                            onCloseModalLocation={() => {
+                                setOpenedModalLocations(prev =>
+                                    prev.filter(record => record.id !== modal.id)
 
-                                    );
+                                );
 
-                                }}
-                                onClose={() => {
-                                    setOpenedModalLocations(prev => prev.filter(m => m.id !== modal.id));
-                                }}
-                                setOpenedModalGoogle={(newData: any) => {
-                                    setOpenedModalLocations(prev => prev.map(m =>
-                                        m.id === modal.id ? { ...m, data: newData } : m
-                                    ));
-                                }}
-                                setCurrentMarker={() => {
-                                    if (modal.data.isRedFootMark) return;
-                                    setOpenedModalLocations((prev: any[]) => {
-                                        return prev.map((m: any) =>
-                                            m.id === modal.id
-                                                ? {
-                                                    ...m,
-                                                    data: {
-                                                        ...m.data,
-                                                        isCurrentMarker: m.data.isCurrentMarker ? false : true,
-                                                    }
-                                                }
-                                                : m
-                                        );
-                                    });
-
-                                }}
-
-                            />
-                            <ModalGoogle
-                                key={`google-${modal.id}`}
-                                modal={modal}
-                                initialLocationId={initialLocationId}
-                                setInitialLocationId={setInitialLocationId}
-                                updateModalElements={updateModalElements}
-                                isFocused={activeGroupId === modal.id}
-                                onFocus={() => setActiveGroupId(modal.id)}
-                                clickedModalId={clickedModalId}
-                                setClickedModalId={setClickedModalId}
-                                setActiveGroupId={setActiveGroupId}
-                                setOpenedModalLocations={setOpenedModalLocations}
-                                openedModalLocations={openedModalLocations}
-                                onSavingLocation={onSavingLocation}
-                                setOnSavingLocation={setOnSavingLocation}
-
-                                initialModalPosGoogle={
-                                    modal.data.hasMovedEnough ?
-                                        {
-                                            x: modal.currentPos.x - 80,
-                                            y: modal.currentPos.y + 40,
-                                        }
-                                        : null
-                                }
-
-                                openedModalGoogle={modal.data}
-                                isGoogleView={modal.data.isShowingGoogle}
-
-                                setIsGoogleView={setIsGoogleView}
-
-                                logs={modal.logs || []}
-
-                                onFetchLogs={() => onFetchLogs(modal.id)}
-                                onClose={() => {
-                                    setOpenedModalLocations((prev: any[]) => {
-                                        return prev.map((m: any) =>
-                                            m.id === modal.id
-                                                ? {
-                                                    ...m,
-                                                    googleData: {
-                                                        ...m.googleData,
-                                                        isShowingGoogle: false
-                                                    }
-                                                }
-                                                : m
-                                        );
-                                    });
-
-                                }}
-
-                            />
-                            <ModalLogs
-                                key={`log-${modal.id}`}
-                                modal={modal}
-                                updateModalElements={updateModalElements}
-                                initialLocationId={initialLocationId}
-                                setInitialLocationId={setInitialLocationId}
-                                isFocused={activeGroupId === modal.id}
-                                onFocus={() => setActiveGroupId(modal.id)}
-                                clickedModalId={clickedModalId}
-                                setClickedModalId={setClickedModalId}
-                                setActiveGroupId={setActiveGroupId}
-                                renderMe={renderMe}
-                                openedModalLocations={openedModalLocations}
-                                setOpenedModalLocations={setOpenedModalLocations}
-                                setIsCommentRecordExist={setIsCommentRecordExist}
-                                onSavingLocation={onSavingLocation}
-                                setOnSavingLocation={setOnSavingLocation}
-
-                                initialModalPosLogs={
-                                    modal.data.hasMovedEnough ?
-                                        {
-                                            x: modal.currentPos.x + 40,
-                                            y: modal.currentPos.y + 40
-                                        }
-                                        : null
-                                }
-                                openedModalGoogle={modal.data}
-                                isGoogleView={modal.data.isShowingGoogle}
-
-                                setIsGoogleView={setIsGoogleView}
-
-                                logs={modal.logs || []}
-
-                                onFetchLogs={() => onFetchLogs(modal.id)}
-
-                                onClose={() => {
-                                    setOpenedModalLocations((prev: any[]) => {
-                                        return prev.map((m: any) =>
-                                            m.id === modal.id ? {
+                            }}
+                            onClose={() => {
+                                setOpenedModalLocations(prev => prev.filter(m => m.id !== modal.id));
+                            }}
+                            setOpenedModalGoogle={(newData: any) => {
+                                setOpenedModalLocations(prev => prev.map(m =>
+                                    m.id === modal.id ? { ...m, data: newData } : m
+                                ));
+                            }}
+                            setCurrentMarker={() => {
+                                if (modal.data.isRedFootMark) return;
+                                setOpenedModalLocations((prev: any[]) => {
+                                    return prev.map((m: any) =>
+                                        m.id === modal.id
+                                            ? {
                                                 ...m,
                                                 data: {
                                                     ...m.data,
-                                                    isShowingLogs: false
+                                                    isCurrentMarker: m.data.isCurrentMarker ? false : true,
                                                 }
                                             }
-                                                : m
-                                        );
-                                    });
+                                            : m
+                                    );
+                                });
 
-                                }}
-                            />
-                            {modal.comments
-                                ?.filter((c: any) => c.isShowingComment)
-                                ?.map((c: any, index: number) => (
-                                    c.isShowingComment && (
-                                        <ModalComments
-                                            key={`comment-${c.logId}`}
-                                            updateModalElements={updateModalElements}
-                                            initialLocationId={initialLocationId}
-                                            setInitialLocationId={setInitialLocationId}
-                                            logs={modal.logs || []}
-                                            comment={c}
-                                            logId={c.logId}
-                                            commentId={c.id}
-                                            modal={modal}
-                                            isFocused={activeGroupId === modal.id}
-                                            onFocus={() => setActiveGroupId(modal.id)}
-                                            clickedModalId={clickedModalId}
-                                            setClickedModalId={setClickedModalId}
-                                            setActiveGroupId={setActiveGroupId}
-                                            initialPos={c.pos}
-                                            onFetchLogs={() => onFetchLogs(modal.id)}
-                                            openedModalLocations={openedModalLocations}
-                                            setOpenedModalLocations={setOpenedModalLocations}
-                                            onSaveSuccess={refreshHistory}
-                                            isCommentRecordExist={isCommentRecordExist}
+                            }}
 
-                                            onClose={() => {
-                                                setOpenedModalLocations(prev =>
-                                                    prev.map(loc =>
-                                                        loc.id === modal.id
-                                                            ? {
-                                                                ...loc,
-                                                                comments: loc.comments.filter((item: any) =>
-                                                                    item.logId !== c.logId)
-                                                            }
-                                                            : loc
-                                                    )
-                                                );
-                                            }}
-                                            initialModalPosComments={
-                                                modal.data.hasMovedEnough ?
-                                                    {
-                                                        x: modal.currentPos.x + 40 * (2 + index),
-                                                        y: modal.currentPos.y + 40 * (2 + index)
-                                                    }
-                                                    : null
+                        />
+                        <ModalGoogle
+                            key={`google-${modal.id}`}
+                            modal={modal}
+                            initialLocationId={initialLocationId}
+                            setInitialLocationId={setInitialLocationId}
+                            updateModalElements={updateModalElements}
+                            isFocused={activeGroupId === modal.id}
+                            onFocus={() => setActiveGroupId(modal.id)}
+                            clickedModalId={clickedModalId}
+                            setClickedModalId={setClickedModalId}
+                            setActiveGroupId={setActiveGroupId}
+                            setOpenedModalLocations={setOpenedModalLocations}
+                            openedModalLocations={openedModalLocations}
+                            onSavingLocation={onSavingLocation}
+                            setOnSavingLocation={setOnSavingLocation}
+
+                            initialModalPosGoogle={
+                                modal.data.hasMovedEnough ?
+                                    {
+                                        x: modal.currentPos.x - 80,
+                                        y: modal.currentPos.y + 40,
+                                    }
+                                    : null
+                            }
+
+                            openedModalGoogle={modal.data}
+                            isGoogleView={modal.data.isShowingGoogle}
+
+                            setIsGoogleView={setIsGoogleView}
+
+                            logs={modal.logs || []}
+
+                            onFetchLogs={() => onFetchLogs(modal.id)}
+                            onClose={() => {
+                                setOpenedModalLocations((prev: any[]) => {
+                                    return prev.map((m: any) =>
+                                        m.id === modal.id
+                                            ? {
+                                                ...m,
+                                                googleData: {
+                                                    ...m.googleData,
+                                                    isShowingGoogle: false
+                                                }
                                             }
-                                        />
-                                    )
-                                ))}
-                        </React.Fragment>
-                    )
-                })
-                }
-            </APIProvider>
+                                            : m
+                                    );
+                                });
+
+                            }}
+
+                        />
+                        <ModalLogs
+                            key={`log-${modal.id}`}
+                            modal={modal}
+                            updateModalElements={updateModalElements}
+                            initialLocationId={initialLocationId}
+                            setInitialLocationId={setInitialLocationId}
+                            isFocused={activeGroupId === modal.id}
+                            onFocus={() => setActiveGroupId(modal.id)}
+                            clickedModalId={clickedModalId}
+                            setClickedModalId={setClickedModalId}
+                            setActiveGroupId={setActiveGroupId}
+                            renderMe={renderMe}
+                            openedModalLocations={openedModalLocations}
+                            setOpenedModalLocations={setOpenedModalLocations}
+                            setIsCommentRecordExist={setIsCommentRecordExist}
+                            onSavingLocation={onSavingLocation}
+                            setOnSavingLocation={setOnSavingLocation}
+
+                            initialModalPosLogs={
+                                modal.data.hasMovedEnough ?
+                                    {
+                                        x: modal.currentPos.x + 40,
+                                        y: modal.currentPos.y + 40
+                                    }
+                                    : null
+                            }
+                            openedModalGoogle={modal.data}
+                            isGoogleView={modal.data.isShowingGoogle}
+
+                            setIsGoogleView={setIsGoogleView}
+
+                            logs={modal.logs || []}
+
+                            onFetchLogs={() => onFetchLogs(modal.id)}
+
+                            onClose={() => {
+                                setOpenedModalLocations((prev: any[]) => {
+                                    return prev.map((m: any) =>
+                                        m.id === modal.id ? {
+                                            ...m,
+                                            data: {
+                                                ...m.data,
+                                                isShowingLogs: false
+                                            }
+                                        }
+                                            : m
+                                    );
+                                });
+
+                            }}
+                        />
+                        {modal.comments
+                            ?.filter((c: any) => c.isShowingComment)
+                            ?.map((c: any, index: number) => (
+                                c.isShowingComment && (
+                                    <ModalComments
+                                        key={`comment-${c.logId}`}
+                                        updateModalElements={updateModalElements}
+                                        initialLocationId={initialLocationId}
+                                        setInitialLocationId={setInitialLocationId}
+                                        logs={modal.logs || []}
+                                        comment={c}
+                                        logId={c.logId}
+                                        commentId={c.id}
+                                        modal={modal}
+                                        isFocused={activeGroupId === modal.id}
+                                        onFocus={() => setActiveGroupId(modal.id)}
+                                        clickedModalId={clickedModalId}
+                                        setClickedModalId={setClickedModalId}
+                                        setActiveGroupId={setActiveGroupId}
+                                        initialPos={c.pos}
+                                        onFetchLogs={() => onFetchLogs(modal.id)}
+                                        openedModalLocations={openedModalLocations}
+                                        setOpenedModalLocations={setOpenedModalLocations}
+                                        onSaveSuccess={refreshHistory}
+                                        isCommentRecordExist={isCommentRecordExist}
+
+                                        onClose={() => {
+                                            setOpenedModalLocations(prev =>
+                                                prev.map(loc =>
+                                                    loc.id === modal.id
+                                                        ? {
+                                                            ...loc,
+                                                            comments: loc.comments.filter((item: any) =>
+                                                                item.logId !== c.logId)
+                                                        }
+                                                        : loc
+                                                )
+                                            );
+                                        }}
+                                        initialModalPosComments={
+                                            modal.data.hasMovedEnough ?
+                                                {
+                                                    x: modal.currentPos.x + 40 * (2 + index),
+                                                    y: modal.currentPos.y + 40 * (2 + index)
+                                                }
+                                                : null
+                                        }
+                                    />
+                                )
+                            ))}
+                    </React.Fragment>
+                )
+            })
+            }
+        </APIProvider>
     );
 }
