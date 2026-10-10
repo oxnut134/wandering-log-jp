@@ -133,8 +133,14 @@ export default function WanderingLog() {
             );
         } else {
             //demo、または位置情報が使えない環境では銀座ライオン前からスタート
+            navigator.permissions?.query({ name: "geolocation" }).then((result) => {
+                if (result.state === "denied") {
+                    setToastMessage("位置情報がブロックされています。設定を確認してください");
+                    setTimeout(() => setToastMessage(null), 5000);
+                }
+            });
             startAt(GINZA_POS);
-            handleCurrentLocation();
+
         }
         refreshHistory();
 
@@ -167,23 +173,23 @@ export default function WanderingLog() {
                     setRedMarkerPos(nowPos);
                     setHomeTrigger(prev => prev + 1);
                 },
-                (error:GeolocationPositionError) => {
+                (error: GeolocationPositionError) => {
                     console.log("位置情報の取得に失敗しました");
                     //位置情報が取得できない旨の、エッセージを出力
                     //setToastMessage("位置情報がオフになっています。設定を確認してください");
                     //setTimeout(() => setToastMessage(null), 5000);
-             
-                        if (error.code === error.PERMISSION_DENIED) {
-                            setToastMessage("位置情報がオフになっています。設定を確認してください");
-                            // オフ・ブロック
-                        } else if (error.code === error.TIMEOUT) {
-                            // 時間切れ
-                            setToastMessage("位置情報取得タイムアウトです");
-                        } else {
-                            // 位置を特定できない
-                            setToastMessage("位置情報が取得できません");
-                        }
-                    
+
+                    if (error.code === error.PERMISSION_DENIED) {
+                        setToastMessage("位置情報がブロックされています。設定を確認してください");
+                        // オフ・ブロック
+                    } else if (error.code === error.TIMEOUT) {
+                        // 時間切れ
+                        setToastMessage("位置情報取得タイムアウトです");
+                    } else {
+                        // 位置を特定できない
+                        setToastMessage("位置情報が取得できません");
+                    }
+
                     setTimeout(() => setToastMessage(null), 5000);
 
                 },
