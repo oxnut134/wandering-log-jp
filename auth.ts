@@ -6,6 +6,12 @@ import { users } from './lib/schema';         // 🎯 お使いのパスに微�
 import { eq } from 'drizzle-orm';
 import bcrypt from "bcryptjs";
 
+// JWT の署名鍵。固定値にフォールバックするとトークンを偽造できるため、未設定なら起動させない
+const authSecret = process.env.AUTH_SECRET;
+if (!authSecret) {
+    throw new Error("AUTH_SECRET が設定されていません。.env.local（本番は Vercel の環境変数）に設定してください。");
+}
+
 // 🎯 核心：ここで初期化を1回だけ行い、強力な「4つの武器」をエクスポートする！ [INDEX]
 export const { handlers, auth, signIn, signOut } = NextAuth({
     providers: [
@@ -38,7 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ],
     session: { strategy: "jwt" },
     pages: { signIn: "/login" },
-    secret: process.env.AUTH_SECRET || "any-random-super-secret-string-1234567890-abcdefg",
+    secret: authSecret,
     callbacks: {
         async jwt({ token, user }) {
             if (user) {

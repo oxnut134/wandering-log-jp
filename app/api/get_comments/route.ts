@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
 import { db } from "../../../lib/db";
 import { visitedLocations, visitedPlaces, visitedComments, } from "../../../lib/schema";
 import { and, eq, desc } from "drizzle-orm";
@@ -22,10 +21,9 @@ export async function GET(request: Request) {
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    return NextResponse.json({ error: 'DATABASE_URL is not set' }, { status: 500 });
+    console.error('❌ DATABASE_URL is not set');
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-
-  const sql = neon(databaseUrl);
 
 
   try {
