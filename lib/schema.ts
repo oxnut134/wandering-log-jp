@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, numeric } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, integer, numeric, date, unique } from "drizzle-orm/pg-core";
 
 // 1. users (ユーザー)
 export const users = pgTable("users", {
@@ -54,4 +54,16 @@ export const visitedComments = pgTable("visited_comments", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
+
+// 6. ai_usage (AI の呼び出し回数。デモユーザーの 1 日あたりの上限に使う。date は日本時間の日付)
+export const aiUsage = pgTable("ai_usage", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  date: date("date").notNull(),
+  count: integer("count").default(0).notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+}, (t) => [
+  unique("ai_usage_user_id_date_unique").on(t.user_id, t.date),
+]);
 

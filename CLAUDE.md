@@ -27,7 +27,8 @@ Google マップ上に訪問した場所・訪問履歴・コメントを記録�
 - `app/api/*/route.ts` : API ルート。`get_*` `save_*` `delete_*` の機能ごとに 1 ディレクトリ。ほかに `chat`, `description`（AI）, `register`, `auth/[...nextauth]`
 - `auth.ts` : NextAuth の設定（handlers, auth, signIn, signOut を export）
 - `lib/db.ts` : Drizzle の DB 接続
-- `lib/schema.ts` : テーブル定義（users, visited_locations, visited_places, visited_logs, visited_comments）
+- `lib/schema.ts` : テーブル定義（users, visited_locations, visited_places, visited_logs, visited_comments, ai_usage）
+- `lib/aiLimit.ts` : デモユーザーの AI 呼び出し上限（`consumeAiQuota`）。回数は `ai_usage` に日本時間の日付ごとに記録する
 - `lib/axios.ts` : baseURL が `/api` の axios インスタンス
 - `README/` : 公開用 README と画像
 
@@ -39,7 +40,8 @@ Google マップ上に訪問した場所・訪問履歴・コメントを記録�
 - `NEXT_PUBLIC_LOCATION_MODE` : 起動時の位置。`live` で現在地を取得、それ以外・未設定は demo（銀座で起動）。`live` でも、取得に失敗したとき、10 秒以内に取得できないとき（許可ダイアログの放置を含む）、位置情報が使えない環境では銀座で起動する。銀座で起動したあとに届いた現在地は無視するので、現在地へ移るには現在地ボタンを使う
 - `DEMO_LOGIN_ENABLED` : `true` のときだけデモログイン（ログイン画面の「デモを試す」ボタンと `demo` プロバイダー）を有効にする。それ以外・未設定は無効。無効のときは、デモユーザーの既存のセッションも無効になり、パスワードでのログインもできない
 - `DEMO_USER_EMAIL` : デモユーザーの email。未設定ならデモログインは無効。このユーザーは、パスワードでログインしてもデモユーザーとして扱う（`session.user.isDemo`）
-- `DEMO_LOGIN_ENABLED` と `DEMO_USER_EMAIL` はサーバー側で実行時に読む。値を変えたら再起動（Vercel では再デプロイ）すれば反映され、再ビルドは要らない
+- `DEMO_AI_DAILY_LIMIT` : デモユーザーが AI（チャット・説明文生成）を呼べる 1 日あたりの回数（日本時間で区切る）。未設定・数値でないときは 50、0 以下なら呼べない。超えると 429 を返す。通常のユーザーには上限なし
+- `DEMO_LOGIN_ENABLED`、`DEMO_USER_EMAIL`、`DEMO_AI_DAILY_LIMIT` はサーバー側で実行時に読む。値を変えたら再起動（Vercel では再デプロイ）すれば反映され、再ビルドは要らない
 - `NEXT_PUBLIC_` の付く変数はビルド時に値が埋め込まれる。値を変えたら再ビルド（Vercel では再デプロイ）が必要
 
 ## 注意

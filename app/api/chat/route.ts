@@ -5,6 +5,8 @@ import { visitedLocations } from "../../../lib/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { isDemoSession } from "@/lib/demo";
+import { AI_LIMIT_MESSAGE, consumeAiQuota } from "@/lib/aiLimit";
 
 const anthropicProvider = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -15,6 +17,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
     const currentUserId = parseInt(session.user.id, 10);
+
+    // デモユーザーは 1 日あたりの上限まで（通常のユーザーには上限なし）
+    if (isDemoSession(session) && !(await consumeAiQuota(currentUserId))) {
+      return NextResponse.json({ error: AI_LIMIT_MESSAGE }, { status: 429 });
+    }
 
     const { messages } = await request.json();
 

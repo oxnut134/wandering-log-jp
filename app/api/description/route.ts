@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { auth } from '@/auth';
+import { isDemoSession } from '@/lib/demo';
+import { AI_LIMIT_MESSAGE, consumeAiQuota } from '@/lib/aiLimit';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -15,6 +17,11 @@ export async function POST(request: Request) {
 
     if (!name) {
       return NextResponse.json({ error: 'name is required' }, { status: 400 });
+    }
+
+    // デモユーザーは 1 日あたりの上限まで（通常のユーザーには上限なし）
+    if (isDemoSession(session) && !(await consumeAiQuota(parseInt(session.user.id, 10)))) {
+      return NextResponse.json({ error: AI_LIMIT_MESSAGE }, { status: 429 });
     }
 
     const message = await client.messages.create({

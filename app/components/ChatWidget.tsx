@@ -2,22 +2,34 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
-import { isTextUIPart } from "ai";
+import { DefaultChatTransport, isTextUIPart } from "ai";
 import { Bot } from "lucide-react";
+
+const AI_LIMIT_MESSAGE = "デモの本日の利用上限に達しました";
+
+// /api/chat が 429（デモの利用上限）を返したら、画面に出すメッセージのエラーにする
+const chatTransport = new DefaultChatTransport({
+    api: "/api/chat",
+    fetch: async (input, init) => {
+        const res = await fetch(input, init);
+        if (res.status === 429) throw new Error(AI_LIMIT_MESSAGE);
+        return res;
+    },
+});
 
 export default function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const { messages, status, sendMessage } = useChat();
+    const { messages, status, sendMessage, error } = useChat({ transport: chatTransport });
 
     const isLoading = status === "submitted" || status === "streaming";
 
     useEffect(() => {
         if (!scrollRef.current) return;
         scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-    }, [messages, isLoading, isOpen]);
+    }, [messages, isLoading, isOpen, error]);
 
     const handleSend = () => {
         if (!input.trim() || isLoading) return;
@@ -102,6 +114,11 @@ export default function ChatWidget() {
                             <div className="bg-white text-gray-400 px-3 py-2 rounded-2xl rounded-bl-sm text-sm shadow-sm">
                                 入力中...
                             </div>
+                        </div>
+                    )}
+                    {error && !isLoading && (
+                        <div className="text-center text-red-500 text-xs px-4">
+                            {error.message === AI_LIMIT_MESSAGE ? AI_LIMIT_MESSAGE : "回答の生成に失敗しました。もう一度お試しください。"}
                         </div>
                     )}
                 </div>

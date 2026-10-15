@@ -111,6 +111,7 @@ export default function ModalLocation({ modal, initialLocationId, setInitialLoca
                     lng: modal.data.longitude,
                 }),
             });
+            if (res.status === 429) throw new Error('デモの本日の利用上限に達しました');
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || '生成失敗');
             setOpenedModalGoogle({ ...modal.data, comment: data.description });
