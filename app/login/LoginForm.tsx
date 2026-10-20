@@ -72,7 +72,7 @@ export default function LoginForm({ showDemo }: { showDemo: boolean }) {
     };
     return (
         <>
-            <div className="p-6 mt-6 w-md mx-auto bg-zinc-50 ">
+            <div className="p-6 mt-6 w-full max-w-md mx-auto bg-zinc-50 ">
                 <Header />
                 <div className="p-6 max-w-md mx-auto">
                     <h1 className="text-3xl font-bold mb-8 text-[#388778] text-center">Login</h1>

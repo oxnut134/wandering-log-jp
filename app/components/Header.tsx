@@ -39,11 +39,12 @@ export default function Header(isDesktop: any) {
                         alt="買い物かご"
                         className="w-[8%] aspect-square rounded-full "
                     />
-                    <span className="text-full text-left w-[65%] text-[25px] italic text-[#388778] font-black tracking-wider text-center">
+                    {/* スマホ幅では文字を小さくし、折り返さないようにする（sm 以上は従来どおり） */}
+                    <span className="text-full text-left flex-1 sm:flex-none sm:w-[65%] text-[20px] sm:text-[25px] whitespace-nowrap italic text-[#388778] font-black tracking-wide sm:tracking-wider text-center">
                         Wandering Log
                     </span>
 
-                    <div className="w-[20%]  text-[15px] font-bold text-gray-500 text-right">
+                    <div className="shrink-0 sm:w-[20%] text-[14px] sm:text-[15px] whitespace-nowrap font-bold text-gray-500 text-right">
                         {currentPage === "login" && (
                             <button onClick={() => window.location.href = "/register"} className="hover:text-red-500 font-black transition-colors">新規登録</button>
                         )}
